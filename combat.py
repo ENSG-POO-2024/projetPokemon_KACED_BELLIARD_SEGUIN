@@ -11,6 +11,7 @@ import pandas as pd
 # import fichierClassesLuna
 from déplacement_joueur import *
 import déplacement_joueur as dj
+import random as rd
 
 
 
@@ -40,7 +41,7 @@ class PointsAttaque():
         self.is_spe = False
     
     
-    def calcDegatsSimples(self):
+    def calcDegatsSimples(self, sens_att):
         """
         Calcul des dégâts causés lors d'une attaque simple
 
@@ -51,16 +52,29 @@ class PointsAttaque():
 
         """
         
-        pointsAtt = self.pok_att.attack
-        pointsDef = self.pok_def.defense
+        if sens_att == 0:  # Si l'attaque va du joueur vers le pokemon sauvage
+            pointsAtt = self.pok_att.attack
+            pointsDef = self.pok_def.defense
         
-        if pointsAtt-pointsDef <= 0:
-            return 0
+            if pointsAtt-pointsDef <= 0:
+                return 0
+            else:
+                return pointsAtt - pointsDef
+            
+        elif sens_att == 1:  # Si l'attaque va du pokemon sauvage vers le joueur
+            pointsAtt = self.pok_def.attack
+            pointsDef = self.pok_att.defense
+        
+            if pointsAtt-pointsDef <= 0:
+                return 0
+            else:
+                return pointsAtt - pointsDef
+        
         else:
-            return pointsAtt - pointsDef
+            print("*** Erreur dans le sens de l'attaque, doit valoir 0 ou 1, or vaut ici", sens_att)
     
     
-    def rechCoef(self):
+    def rechCoef(self, sens_att):
         """
         Recherche du coefficient multiplicateur des attaques spéciales dans une grille créée
 
@@ -96,13 +110,21 @@ class PointsAttaque():
         
         dicoTypes = {'Acier':0, 'Combat':1, 'Dragon':2, 'Eau':3, 'Electrik':4, 'Feu':5, 'Fee':6, 'Glace':7, 'Insecte':8, 'Normal':9 , 'Plante':10 , 11:'Poison' , 'Psy':12 , 'Roche':13 , 'Sol':14 , 'Spectre':15 , 'Tenebres':16 , 'Vol':17}
         
-        indiceLig = dicoTypes[self.pok_att.type_1]
-        indiceCol = dicoTypes[self.pok_def.type_1]
+        if sens_att == 0:  # Si c'est le pokemon du joueur qui attaque
+            indiceLig = dicoTypes[self.pok_att.type_1]
+            indiceCol = dicoTypes[self.pok_def.type_1]
+            return grilleCoefs[indiceLig][indiceCol]
+            
+        elif sens_att == 1: # Si c'est le pokemon sauvage qui attaque
+            indiceLig = dicoTypes[self.pok_def.type_1]
+            indiceCol = dicoTypes[self.pok_att.type_1]
+            return grilleCoefs[indiceLig][indiceCol]
         
-        return grilleCoefs[indiceLig][indiceCol]
+        else:
+            print("*** Erreur dans le sens de l'attaque, doit valoir 0 ou 1, or vaut ici", sens_att)
     
     
-    def calcDegatsSpe(self):
+    def calcDegatsSpe(self, sens_att):
         """
         Calcule les dégâts causés par une attaque de type spéciale
 
@@ -113,29 +135,72 @@ class PointsAttaque():
 
         """
         
-        coef = self.rechCoef()
-        degatsSpe = self.pok_att.sp_attack - self.pok_def.defense
-        print("Valeur de l'attaque spéciale :", degatsSpe*coef)
-        print("infos calcul :", self.pok_att.sp_attack, self.pok_def.defense, coef)
+        if sens_att == 0:  # Si c'est le pokemon du joueur qui attaque
+            coef = self.rechCoef(0)
+            degatsSpe = self.pok_att.sp_attack - self.pok_def.defense
+            print("Valeur de l'attaque spéciale :", degatsSpe*coef)
+            print("Pok att:", self.pok_att.name)
+            print("Pok def:", self.pok_def.name)
+            print("infos calcul :", self.pok_att.sp_attack, self.pok_def.defense, coef)
         
-        if degatsSpe*coef <= 0:
-            return 0
-        else:
-            return int(degatsSpe * coef)
+            if int(degatsSpe*coef) <= 0:
+                return 0
+            else:
+                return int(degatsSpe * coef)
+        
+        elif sens_att == 1:  # Si c'est le pokemon sauvage qui attaque
+            coef = self.rechCoef(1)
+            degatsSpe = self.pok_def.sp_attack - self.pok_att.defense
+            print("Valeur de l'attaque spéciale :", degatsSpe*coef)
+            print("Pok att:", self.pok_def.name)
+            print("Pok def:", self.pok_att.name)
+            print("Infos calcul :", self.pok_def.sp_attack, self.pok_att.defense, coef)
+        
+            if int(degatsSpe*coef) <= 0:
+                return 0
+            else:
+                return int(degatsSpe * coef)
     
     
     def retraitPtsAttaque(self):
         choixSpe = int(input("Entrez 1 si vous souhaitez faire une attaque spéciale, 2 sinon : "))
         
         if choixSpe == 1:
-            degSpe = self.calcDegatsSpe()
+            degSpe = self.calcDegatsSpe(0)
             self.pok_def.hp_restant -= degSpe
             print("!! HP perdus :", degSpe)
             
         else:
-            degSpl = self.calcDegatsSimples()
+            degSpl = self.calcDegatsSimples(0)
             self.pok_def.hp_restant -= degSpl
             print("!! HP perdus :", degSpl)
+            
+    
+    def retraitPtsAtt_pokDef(self):
+        # Fait en sorte que le pokemon sauvage ait 1 chance sur 5 de faire une attaque spéciale
+        tirage_degats_pok = [0,0,0,0,1]  # 0 correspond à attaque normale, 1 à attaque spéciale
+        i_aleat = rd.randint(0, 4)
+        type_attaque = tirage_degats_pok[i_aleat]
+        print("\nType de l'attaque du pok def :", type_attaque)
+        
+        # Retrait HP du pok du joueur
+        degats_pok_sauv = 0
+        if type_attaque == 0:
+            degats_pok_sauv = self.calcDegatsSimples(1)
+            self.pok_att.hp_restant -= degats_pok_sauv
+            print("!! Vous perdez des dégâts :", degats_pok_sauv)
+            if self.pok_att.hp_restant < 0:
+                self.pok_att.hp_restant = 0
+            
+        elif type_attaque == 1:
+            degats_pok_sauv = self.calcDegatsSpe(1)
+            self.pok_att.hp_restant -= degats_pok_sauv
+            print("!! Vous perdez des dégâts :", degats_pok_sauv)
+            if self.pok_att.hp_restant < 0:
+                self.pok_att.hp_restant = 0
+            
+        else :
+            print("*** Erreur ***")
 
 
 
@@ -152,32 +217,12 @@ class Combat(PointsAttaque):
         
         self.continuer_combat = True  # Tant que True, on continue le combat --> On sort de la boucle combat du jeu lorsque False
         self.choix = 0
+        self.is_att_possible = True
         choixPossibles = {0:"fuite", 1:"attaque", 2:"changement"}
 
     
     def demandeChoixAction(self):
         choixTemp = ""
-        
-        # while not (choix == 'a' or choix == 'c' or choix == 'f'):
-        #     choix = input("Entrez votre choix d'action (parmi a, c ou f): ")
-            
-        #     if choix == 'a': # Si le choix est ATTAQUE
-        #         # Ecrire le code correspondant à ce cas
-        #         print("Le joueur attaque")
-        #         return 'a'
-                
-        #     elif choix == 'c': # Si le choix est CHANGEMENT DE JOUEUR
-        #         # Ecrire le code correspondant à ce cas
-        #         print("Le joueur change de pokemon")
-        #         return 'c'
-                
-        #     elif choix == 'f': # # Si le choix est FUITE
-        #         # Ecrire le code correspondant à ce cas
-        #         print("Le joueur fuit")
-        #         return 'f'
-                
-        #     else:
-        #         print("\n*** Veuillez saisir un choix parmi : a, c ou f ***\n")
         
         while not (choixTemp == 'a' or choixTemp == 'c' or choixTemp == 'f'):        
             print("\n*** Veuillez saisir un choix parmi : a, c ou f ***\n")
@@ -186,11 +231,18 @@ class Combat(PointsAttaque):
         if choixTemp == 'f':
             self.choix = 0
             self.fuite()
+            if self.continuer_combat == True:
+                print("\nVeuillez choisir autre chose que la fuite !")
+                self.demandeChoixAction()
             
         elif choixTemp == 'a':
-            self.choix = 1
-            self.attaque()
-
+            if self.is_att_possible == False:
+                print("\n!! Votre pokemon n'a plus de vie, vous devez le changer pour pouvoir attaquer ! (HP restants pokemon joueur :", self.pok_att.hp_restant, ")")
+                self.demandeChoixAction()
+            else:
+                self.choix = 1
+                self.attaque()
+        
         elif choixTemp == 'c':
             self.choix = 2
             self.changement()
@@ -199,7 +251,11 @@ class Combat(PointsAttaque):
     def attaque(self):
         att = PointsAttaque(self.joueur, self.pok_def, self.pok_att)
         att.retraitPtsAttaque()
-
+    
+    
+    def attPokSauvage(self):
+        att = PointsAttaque(self.joueur, self.pok_def, self.pok_att)
+        att.retraitPtsAtt_pokDef()
     
     
     def fuite(self):
@@ -273,6 +329,8 @@ class Combat(PointsAttaque):
             self.pok_att = nv_pok  # Le pokemon attaquant est maintenant le pokemon sélectionné
             self.continuer_combat = True
             self.nb_pok_utilises += 1
+            if nv_pok.hp_restant > 0:
+                self.is_att_possible = True
         
         
     def afficheInfosCombat(self):
@@ -281,6 +339,15 @@ class Combat(PointsAttaque):
         print("HP restants pok attaquant :", self.pok_att.hp_restant)
         print("Nom pokemon sauvage :", self.pok_def.name)
         print("HP restants pok sauvage :", self.pok_def.hp_restant)
+        
+    
+    def testMortPokemonJoueur(self):
+        if self.pok_att.hp_restant <= 0:  # Si le pokemon attaquant du joueur est mort
+            print("\nAïe aïe aïe ! Votre pokemon", self.pok_att.name, ",c'est ciao ! Vous n'avez plus qu'à en choisir un autre ou à fuir..")
+            self.is_att_possible = False
+        else:
+            self.is_att_possible = True
+            
         
         
 
@@ -298,6 +365,8 @@ class Jeu(Combat):
         cb = Combat(self.joueur, self.pok_def, self.pok_att)  # Initialisation d'une instance de la classe combat
         
         while not self.is_finito:
+            print("\n\n||| NOUVELLE ATTAQUE |||\n")
+            
             print("Condition boucle :", self.is_finito)
             cb.afficheInfosCombat()
             
@@ -308,7 +377,12 @@ class Jeu(Combat):
             elif cb.pok_def.hp_restant <= 0:
                 self.is_finito = True
                 print("\nTrop fort ! Le combat est gagné !")
-            
+                
+            # Contre-attaque du pokemon sauvage
+            if self.is_finito != True:
+                cb.attPokSauvage()
+                cb.testMortPokemonJoueur()
+           
             
 
 
@@ -319,7 +393,7 @@ if __name__ == "__main__":
     
     # TESTS CLASSE COMBAT
     
-    P1 = Pokemon('P1', 'Plante', 75, 30, 150, 60, 800, 25)
+    P1 = Pokemon('P1', 'Plante', 75, 30, 150, 60, 800, 400)
     P2 = Pokemon('P2', 'Eau', 50, 50, 100, 85, 700, 700)
     P3 = Pokemon('P3', 'Glace', 78, 60, 89, 75, 687, 687)
     liste_pok_j1 = [P1,P2,P3]

@@ -8,33 +8,33 @@ Created on Fri May  3 13:44:09 2024
 
 import numpy as np
 import pandas as pd
-# import fichierClassesLuna
-from déplacement_joueur import *
-import déplacement_joueur as dj
+import pokemon as pk
+from pokemon import *
+import deplacement_joueur as dj
+from deplacement_joueur import *
 import random as rd
 
 
 
 
-class Pokemon():
-    def __init__(self, name, type_1, attack, defense, sp_attack, sp_defense, hp_depart, hp_restant):
-        self.name=name
-        self.type_1=type_1
-        self.attack=attack
-        self.defense=defense
-        self.sp_attack=sp_attack
-        self.sp_defense=sp_defense
-        self.hp_depart=hp_depart
-        self.hp_restant = hp_restant
+# class Pokemon():
+#     def __init__(self, name, type_1, attack, defense, sp_attack, sp_defense, hp_depart, hp_restant):
+#         self.name=name
+#         self.type_1=type_1
+#         self.attack=attack
+#         self.defense=defense
+#         self.sp_attack=sp_attack
+#         self.sp_defense=sp_defense
+#         self.hp_depart=hp_depart
+#         self.hp_restant = hp_restant
 
 
 
 
 class PointsAttaque():
     
-    def __init__(self, joueur, pok_def, pok_att):
+    def __init__(self, pok_def, pok_att):
         
-        self.joueur = joueur
         self.pok_def = pok_def
         self.pok_att = pok_att
         
@@ -108,7 +108,7 @@ class PointsAttaque():
             ]
         grilleCoefs = np.array(grilleCoefs)
         
-        dicoTypes = {'Acier':0, 'Combat':1, 'Dragon':2, 'Eau':3, 'Electrik':4, 'Feu':5, 'Fee':6, 'Glace':7, 'Insecte':8, 'Normal':9 , 'Plante':10 , 11:'Poison' , 'Psy':12 , 'Roche':13 , 'Sol':14 , 'Spectre':15 , 'Tenebres':16 , 'Vol':17}
+        dicoTypes = {'Steel':0, 'Fighting':1, 'Dragon':2, 'Water':3, 'Electric':4, 'Fire':5, 'Fairy':6, 'Ice':7, 'Bug':8, 'Normal':9 , 'Grass':10 , 11:'Poison' , 'Psychic':12 , 'Rock':13 , 'Ground':14 , 'Ghost':15 , 'Dark':16 , 'Flying':17}
         
         if sens_att == 0:  # Si c'est le pokemon du joueur qui attaque
             indiceLig = dicoTypes[self.pok_att.type_1]
@@ -209,8 +209,9 @@ class PointsAttaque():
 class Combat(PointsAttaque):
     
     def __init__(self, joueur, pok_def, pok_att):
-        super().__init__(joueur, pok_def, pok_att)
+        super().__init__(pok_def, pok_att)
         
+        self.joueur = joueur
         self.vainqueur = False
         self.nb_pok_utilises = 0
         self.nb_pok_restants = 0
@@ -249,12 +250,12 @@ class Combat(PointsAttaque):
             
     
     def attaque(self):
-        att = PointsAttaque(self.joueur, self.pok_def, self.pok_att)
+        att = PointsAttaque(self.pok_def, self.pok_att)
         att.retraitPtsAttaque()
     
     
     def attPokSauvage(self):
-        att = PointsAttaque(self.joueur, self.pok_def, self.pok_att)
+        att = PointsAttaque(self.pok_def, self.pok_att)
         att.retraitPtsAtt_pokDef()
     
     
@@ -353,11 +354,12 @@ class Combat(PointsAttaque):
 
             
 
-class Jeu(Combat):
+class Jeu(Combat, Joueur):
     
     def __init__(self, joueur, pok_def, pok_att):
         super().__init__(joueur, pok_def, pok_att)
         self.is_finito = False
+        self.is_combat = False
     
     
     def boucleCombat(self):
@@ -382,7 +384,22 @@ class Jeu(Combat):
             if self.is_finito != True:
                 cb.attPokSauvage()
                 cb.testMortPokemonJoueur()
-           
+            
+    
+    def lancementCombat(self):
+        if self.joueur.pokemon_trouve(new_pos, pok) == True:  # Si le pokemon est trouvé
+            print("\nVous tombez sur un pokemon ! Lancement du combat !")
+            self.is_combat = True  # Il doit y avoir un combat
+        else:
+            self.is_combat = False
+        
+    
+    def jouer(self):
+        
+        # Test si combat puis insctructions combat
+        self.lancementCombat()
+        if self.is_combat == True:
+            self.boucleCombat()
             
 
 
@@ -393,13 +410,13 @@ if __name__ == "__main__":
     
     # TESTS CLASSE COMBAT
     
-    P1 = Pokemon('P1', 'Plante', 75, 30, 150, 60, 800, 400)
-    P2 = Pokemon('P2', 'Eau', 50, 50, 100, 85, 700, 700)
-    P3 = Pokemon('P3', 'Glace', 78, 60, 89, 75, 687, 687)
-    liste_pok_j1 = [P1,P2,P3]
+    pikachu = pk.Pokemon(df_n[24,:], (5,5))
+    rattata = pk.Pokemon(df_n[18,:], (5,5))
+    bulbasaur = pk.Pokemon(df_n[0,:], (5,5))
+    liste_pok_j1 = [pikachu, rattata, bulbasaur]
     J1 = dj.Joueur('j1', liste_pok_j1, 45)
     
-    combat1 = Combat(J1, P2, P1)
+    # combat1 = Combat(pikachu, rattata, J1)
     # combat1.demandeChoixAction()
     # print("\n*** Test fonction demandeChoixAction, doit s'afficher le choix entré par l'utilisateur (0, 1 ou 2) : ", combat1.choix)
     
@@ -410,7 +427,7 @@ if __name__ == "__main__":
     
     # TESTS CLASSE POINTS ATTAQUE
     
-    pts1 = PointsAttaque(J1, P2, P1)
+    pts1 = PointsAttaque(rattata, pikachu)
     # degatsSimples = pts1.calcDegatsSimples()
     # print("\nSont attendus les degats causés par une attaque simple de", P1.name, "de valeur", P1.attack, "sur", P2.name, "de défense", P2.defense, ':', degatsSimples)
     # coef = pts1.rechCoef()
@@ -421,7 +438,7 @@ if __name__ == "__main__":
     
     # TESTS SYSTEME ATTAQUE CLASSE COMBAT
     
-    combat2 = Combat(J1, P3, P2)
+    combat2 = Combat(J1, bulbasaur, rattata)
     # print("PV de", combat2.pok_def.name, "avant l'attaque simple de", combat2.pok_att.name, "de valeur", combat2.pok_att.attack-combat2.pok_def.defense, ":", combat2.pok_def.hp_restant)
     # combat2.attaque()
     # print("PV de", combat2.pok_def.name, "après l'attaque simple de", combat2.pok_att.name, ":", combat2.pok_def.hp_restant)
@@ -434,8 +451,8 @@ if __name__ == "__main__":
     # TESTS ENCHAINEMENT COMBATS
     
     print("\n\t*** TEST JEU ***\n")
-    combat3 = Combat(J1, P2, P1)
-    jeu1 = Jeu(J1, P2, P1)
+    combat3 = Combat(J1, rattata, pikachu)
+    jeu1 = Jeu(J1, rattata, pikachu)
     jeu1.boucleCombat()
 
 

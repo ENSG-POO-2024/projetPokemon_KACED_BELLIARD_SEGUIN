@@ -53,7 +53,7 @@ class Joueur(Pokemon):
         else: return False
         
     
-        
+    
     
     
 class Plateau(Joueur,Pokemon):

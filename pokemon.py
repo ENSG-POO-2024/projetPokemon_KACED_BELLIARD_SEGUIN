@@ -79,7 +79,13 @@ class Pokemon(metaclass=ABCMeta):
           #self.generation pok_data[11]
           
           self.pos = pos_init
-          
+    
+    def nom_pok_to_id_pok(nom_pok):
+        liste_noms = df_n[:,1]
+        
+        return liste_noms.tolist().index(nom_pok)
+                 
+        
         # #fonction affichage par ligne
 
     # def affichage_ligne(self):
@@ -190,6 +196,8 @@ print(pikachu.sp_attack)
 # pok1.affichage_ligne()
 # pok1.affichage_colonne()
 # pok1.affichage_nom()
+
+i = Pokemon.nom_pok_to_id_pok('Pikachu')
 
 
 

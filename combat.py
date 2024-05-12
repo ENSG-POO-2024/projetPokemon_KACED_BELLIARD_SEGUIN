@@ -219,6 +219,7 @@ class Combat(PointsAttaque):
         self.continuer_combat = True  # Tant que True, on continue le combat --> On sort de la boucle combat du jeu lorsque False
         self.choix = 0
         self.is_att_possible = True
+        self.is_changement = False
         choixPossibles = {0:"fuite", 1:"attaque", 2:"changement"}
 
     
@@ -300,38 +301,55 @@ class Combat(PointsAttaque):
 
         """
         
-        # Affichage de la liste des pokemons disponibles
-        print("Il vous reste les pokemons suivants :")
-        for p in self.joueur.list_pok:
-            print("Nom : " + p.name + ", HP restants : " + str(p.hp_restant))
-        
-        # Demande à l'utilisateur de sélectionner le pokemon à rentrer
-        nv_pok_str = input("Entrez le nom du pokemon souhaité :")
-        nv_pok = Pokemon(nv_pok_str, 'Feu', 50, 50, 50, 50, 50, 50) # !!! Ligne A MODIFIER pour qu'elle s'adapte au pokemon entré par le joueur
-        
-        # Test si Pokemon entré est dans la liste
-        test = False
-        for p in self.joueur.list_pok:
-            if nv_pok == p:
-                test = True
-        if test == False:
-            print("Vous n'avez pas ce Pokemon !")
-        
-        if nv_pok == None:
-            print("Aucun Pokemon entré..")
-        
-        else:
-            # Indication du niveau de vie restant du pokemon
-            if nv_pok.hp_restant <= 0.2*nv_pok.hp_depart:
-                print("Niveau de PV critique ! Changement de Pokemon stratégique.")
-            else:
-                print("Il reste ", nv_pok.hp_restant, " hp restants à votre ", nv_pok.name)
+        cdt = True
+        while cdt:  # Tant que le pokemon rentré n'est pas dans la liste (cdt = False si le pokemon rentré est présent dans la liste)
+            # Affichage de la liste des pokemons disponibles
+            print("Il vous reste les pokemons suivants :")
+            for p in self.joueur.list_pok:
+                print("Nom : " + p.name + ", HP restants : " + str(p.hp_restant))
             
-            self.pok_att = nv_pok  # Le pokemon attaquant est maintenant le pokemon sélectionné
-            self.continuer_combat = True
-            self.nb_pok_utilises += 1
-            if nv_pok.hp_restant > 0:
-                self.is_att_possible = True
+            # Demande à l'utilisateur de sélectionner le pokemon qui va combattre
+            nv_pok_str = input("Entrez le nom du pokemon souhaité :")
+            nv_pok = None
+            for p in self.joueur.list_pok:
+                if p.name == nv_pok_str:
+                    nv_pok = p
+                
+            # Test si Pokemon entré est dans la liste
+            is_possede = False
+            for p in self.joueur.list_pok:
+                if nv_pok == p:
+                    is_possede = True
+            if is_possede == False:
+                print("\nVous n'avez pas ce Pokemon !")
+                cdt = True
+            
+            if nv_pok == None:
+                print("\nAucun Pokemon entré..")
+                cdt = True
+            
+            elif nv_pok == self.pok_def:
+                print("\nVous ne pouvez pas sélectionner le pokemon défenseur..")
+                cdt = True
+            
+            elif nv_pok == self.pok_att:
+                print("\nEvite de prendre le pokemon que t'as déjà la prochaine fois stp..")
+            
+            else:
+                # Indication du niveau de vie restant du pokemon
+                if nv_pok.hp_restant <= 0.2*nv_pok.hp_depart:
+                    print("Niveau de PV critique ! Changement de Pokemon stratégique.")
+                else:
+                    print("Il reste ", nv_pok.hp_restant, " hp restants à votre ", nv_pok.name)
+                
+                self.pok_att = nv_pok  # Le pokemon attaquant est maintenant le pokemon sélectionné
+                self.continuer_combat = True
+                self.nb_pok_utilises += 1
+                if nv_pok.hp_restant > 0:
+                    self.is_att_possible = True
+                
+                cdt = False
+                self.is_changement = True
         
         
     def afficheInfosCombat(self):
@@ -340,6 +358,10 @@ class Combat(PointsAttaque):
         print("HP restants pok attaquant :", self.pok_att.hp_restant)
         print("Nom pokemon sauvage :", self.pok_def.name)
         print("HP restants pok sauvage :", self.pok_def.hp_restant)
+        
+        att = PointsAttaque(self.pok_def, self.pok_att)
+        coef = att.rechCoef(0)
+        print("Efficacité des attaques spéciales :", coef)
         
     
     def testMortPokemonJoueur(self):
@@ -362,6 +384,35 @@ class Jeu(Combat, Joueur):
         self.is_combat = False
     
     
+    def attributionAleatPokJoueur(self):
+        # Tirage au sort de 10 pokemons :
+        liste_pok_aleat = []
+        for k in range(10):
+            deja_attribue = True
+            while deja_attribue == True:
+                i_aleat = rd.randint(0, 150)
+                data_pok = pk.df_n[i_aleat, :]
+                pok = pk.Pokemon(data_pok, (5,5))  # !! Faire ATTENTION à modifier la position initiale par la suite
+                if pok in liste_pok_aleat:
+                    deja_attribue = True
+                else:
+                    deja_attribue = False
+            liste_pok_aleat.append(pok)
+        self.joueur.list_pok = liste_pok_aleat
+        
+        # Le joueur sélectionne 7 pokemons parmi ces 10 possibles
+        print("\nVoici la liste des pokemons disponibles :")
+        for i in range(len(liste_pok_aleat)):
+            print(i, ":", liste_pok_aleat[i].name)
+        print("\nVeuillez sélectionner les numeros des 5 pokemons voulus :")
+        liste_pok_gardes = []
+        for i in range(5):
+            indice = int(input("Pokemon " + str(i+1) + ': '))
+            liste_pok_gardes.append(liste_pok_aleat[indice])
+        
+        self.joueur.list_pok = liste_pok_gardes
+        
+    
     def boucleCombat(self):
         self.is_finito = False
         cb = Combat(self.joueur, self.pok_def, self.pok_att)  # Initialisation d'une instance de la classe combat
@@ -382,7 +433,9 @@ class Jeu(Combat, Joueur):
                 
             # Contre-attaque du pokemon sauvage
             if self.is_finito != True:
-                cb.attPokSauvage()
+                if cb.is_changement == False:  # On n'enlève pas de PV si un changement est effectué
+                    cb.attPokSauvage()
+                cb.is_changement = False
                 cb.testMortPokemonJoueur()
             
     
@@ -396,8 +449,12 @@ class Jeu(Combat, Joueur):
     
     def jouer(self):
         
+        # Initiation du jeu : on demande à l'utilisateur de choisir ses pokemons
+        self.attributionAleatPokJoueur()
+        
         # Test si combat puis insctructions combat
-        self.lancementCombat()
+        # self.lancementCombat()
+        self.is_combat = True  # !! Ligne A SUPPRIMER plus tard
         if self.is_combat == True:
             self.boucleCombat()
             
@@ -410,9 +467,9 @@ if __name__ == "__main__":
     
     # TESTS CLASSE COMBAT
     
-    pikachu = pk.Pokemon(df_n[24,:], (5,5))
-    rattata = pk.Pokemon(df_n[18,:], (5,5))
-    bulbasaur = pk.Pokemon(df_n[0,:], (5,5))
+    pikachu = pk.Pokemon(pk.df_n[24,:], (5,5))
+    rattata = pk.Pokemon(pk.df_n[18,:], (5,5))
+    bulbasaur = pk.Pokemon(pk.df_n[0,:], (5,5))
     liste_pok_j1 = [pikachu, rattata, bulbasaur]
     J1 = dj.Joueur('j1', liste_pok_j1, 45)
     
@@ -453,7 +510,18 @@ if __name__ == "__main__":
     print("\n\t*** TEST JEU ***\n")
     combat3 = Combat(J1, rattata, pikachu)
     jeu1 = Jeu(J1, rattata, pikachu)
-    jeu1.boucleCombat()
+    # jeu1.boucleCombat()
+    
+    
+    # TESTS INITATION POKEMONS JOUEUR
+    
+    jeu2 = Jeu(J1, rattata, pikachu)
+    # liste_pok_j2 = jeu2.attributionAleatPokJoueur()
+    # liste_pok = jeu2.joueur.list_pok
+    # for p in liste_pok:
+    #     print(p.name)
+    
+    jeu2.jouer()
 
 
 

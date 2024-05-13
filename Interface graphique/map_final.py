@@ -1,12 +1,12 @@
 
 import random as rd
 from PyQt5 import QtCore, QtGui, QtWidgets
-import deplacement_joueur as dj
+import pokemons_final as p
+from PyQt5.QtWidgets import QApplication, QWidget
+pokemons = p.pokemons
 
 
 
-
-pokemons = dj.pok_jeu
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -53,7 +53,7 @@ class Ui_MainWindow(object):
             nom = pokemon_data[1]
             position = pokemon_data[13]
             label = QtWidgets.QLabel(self.frame)
-            label.setGeometry(QtCore.QRect(position[0]*10*5+rd.randint(-10,10), position[1]*10*5+rd.randint(-10,10), 81, 31))
+            label.setGeometry(QtCore.QRect(position[0], position[1], 81, 31))
             font = QtGui.QFont()
             font.setPointSize(10)
             font.setBold(True)
@@ -135,3 +135,4 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
+        

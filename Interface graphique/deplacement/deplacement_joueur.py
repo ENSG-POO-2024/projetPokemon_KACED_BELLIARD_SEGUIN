@@ -30,8 +30,8 @@ for i in range(len(pos_pok)):
         if pos_pok[i][0] == pok_jeu[j][1]:
             if len(pok_jeu[j]) == 13:
                 pok_jeu[j].append(pos_pok[i][1])
-                x = int(pok_jeu[j][13][0]) + rd.randint(0,10)
-                y = int(pok_jeu[j][13][1]) + rd.randint(0,10)
+                x = int(pok_jeu[j][13][0])*10*5 + rd.randint(-10,10)
+                y = int(pok_jeu[j][13][1])*10*5 + rd.randint(-10,10)
                 pok_jeu[j][13][0] = x
                 pok_jeu[j][13][1] = y
         

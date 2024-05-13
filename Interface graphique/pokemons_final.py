@@ -1,28 +1,13 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon May 13 11:39:24 2024
-
-@author: Formation
-"""
-
-
-# -*- coding: utf-8 -*-
-"""
-Created on Tue May  7 09:21:59 2024
-
-@author: Formation
-"""
-
-
 import pandas as pd
 from abc import abstractmethod, ABCMeta
 import numpy as np
+import random as rd 
 
 
 ###PROBLEME INDENTER
 
-data=pd.read_csv(("./data/pokemon_first_gen.csv"), delimiter=",")
-
+data=pd.read_csv(("../data/pokemon_first_gen.csv"), delimiter=",")
+pos_pok_init = pd.read_csv("../data/pokemon_coordinates.csv")#Lecture des coordonnées des pokemons
 #Dictionnaire type pokemon et index
 dico_ang_fr={"Steel":"Acier", "Fighting":"Combat", "Dragon":"Dragon", "Water": "Eau", "Electric":"Electrik", "Fire": "Feu", "Fairy":"Fee", "Ice":"Glace", "Bug":"Insecte", "Normal":"Normal", "Grass":"Plante", "Poison":"Poison", "Psychic":"Psy", "Rock":"Roche", "Ground":"Sol", "Ghost":"Spectre", "Dark":"Tenebres", "Flying":"Vol"}
 dicoTypes = {'Acier':0,'Combat':1,'Dragon':2,'Eau':3,'Electrik':4,'Feu':5,'Fee':6,'Glace':7,'Insecte':8,'Normal':9 ,'Plante':10 ,'Poison':11 ,'Psy':12 ,'Roche':13,'Sol':14 ,'Spectre':15 ,'Tenebres':16 ,'Vol':17}
@@ -74,7 +59,7 @@ df_n = np.array(df)
 
 class Pokemon(metaclass=ABCMeta):
     
-    def __init__(self, pok_data, pos_init):
+    def __init__(self, pok_data):
           self.name = pok_data[1]
           self.type_1 = pok_data[2]
           self.attack = pok_data[6]
@@ -86,7 +71,6 @@ class Pokemon(metaclass=ABCMeta):
           #self.speed = pok_data[10]
           #self.generation pok_data[11]
           
-          self.pos = pos_init
     
     def nom_pok_to_id_pok(nom_pok):
         liste_noms = df_n[:,1]
@@ -187,31 +171,69 @@ class Pokemon(metaclass=ABCMeta):
 class Etat(Pokemon, metaclass=ABCMeta):
     
     def __init__(self, pok_data, pos_init, hp_restant, nb_combats):
-        super().__init__(pok_data, pos_init)
+        super().__init__(pok_data)
         
         self.hp_restant=hp_restant
         self.nb_combats=nb_combats
 
+class PokemonJoueur(Pokemon):
+    def __init__(self, pok_data):
+        self.data = data
+    
+    def randomPokemon(self, pok_data):
+        pok_init = pok_data.values.tolist()#Transformation du tableau panda en liste
+        list_pok_joueur = rd.sample(pok_init,k=10)#Choix aléatoire de 10 pokémons pour le joueur 
+        return list_pok_joueur
+    
 
+class PokemonJeu(PokemonJoueur):
+    def __init__(self, pok_data):
+        self.data = data
+        
+    def savagePokemon(self, pok_data, pos_pok_init, list_pok_joueur):
+        pok_jeu = [i for i in pok_data.values.tolist() if i not in list_pok_joueur]#liste des pokémons présents sur la carte
+        
+        pos_pok = pos_pok_init.values.tolist()#Transformation du tableau en liste
+        
+        #Tranformation des coordonnées (chaine de caractère) en liste
+        for i in range(len(pos_pok)):
+            b = pos_pok[i][1]
+            l = eval(b)
+            pos_pok[i] = [pos_pok[i][0], l]
 
+        #Liste des pokémons uniques contenant toutes les informations (dont les coordonnées)
+            for j in range(len(pok_jeu)):
+                if pos_pok[i][0] == pok_jeu[j][1]:
+                    if len(pok_jeu[j]) == 13:
+                        pok_jeu[j].append(pos_pok[i][1])
+                        x = int(pok_jeu[j][13][0])*10*5 + rd.randint(-10,10)
+                        y = int(pok_jeu[j][13][1])*10*5 + rd.randint(-10,10)
+                        pok_jeu[j][13][0] = x
+                        pok_jeu[j][13][1] = y
+        
+        return pok_jeu
+# pokemons = Poke
 
 # pok1 = Pokemon('Pikachu', 'Electric', 75, 30, 150, 60, 800, (5,5))
 
-pikachu_data = df_n[24,:]
-pikachu = Pokemon(pikachu_data, (5,5))
-print(pikachu.sp_attack)
+# pikachu_data = df_n[24,:]
+# pikachu = Pokemon(pikachu_data, (5,5))
+# print(pikachu.sp_attack)
 
-# pok1.affichage_ligne()
-# pok1.affichage_colonne()
-# pok1.affichage_nom()
+# # pok1.affichage_ligne()
+# # pok1.affichage_colonne()
+# # pok1.affichage_nom()
 
-i = Pokemon.nom_pok_to_id_pok('Pikachu')
+# i = Pokemon.nom_pok_to_id_pok('Pikachu')
+pok_data = data
+pokemon_joueur_instance = PokemonJoueur(pok_data)
 
+pok_data = data
+list_pok_joueur = pokemon_joueur_instance.randomPokemon(pok_data)
+pok_coordinate = pos_pok_init
 
-
-
-
-
+pokemon_jeu = PokemonJeu(pok_data)
+pokemons = pokemon_jeu.savagePokemon(pok_data, pok_coordinate, list_pok_joueur)
 
 
 

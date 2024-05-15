@@ -45,6 +45,13 @@ class Ui_Form(object):
         txt = C1.afficheInfosCombat()
         self.label_2.setText(txt)
         
+        self.label_3 = QtWidgets.QLabel(Form)
+        self.label_3.setGeometry(QtCore.QRect(450, 300, 250, 100))
+        self.label_3.setObjectName("labelAfficheResultatCombat")
+        self.label_3.setStyleSheet('background-color: rgb(0, 0, 255);\n')
+        self.label_3.setText("")
+        self.label_3.hide()
+        
         self.pushButton = QtWidgets.QPushButton(Form)
         self.pushButton.setGeometry(QtCore.QRect(340, 241, 71, 20))
         self.pushButton.setText("Fuite")
@@ -100,9 +107,6 @@ class Ui_Form(object):
         self.comboBoxChgmt = QtWidgets.QComboBox(Form)
         self.comboBoxChgmt.setGeometry(QtCore.QRect(200, 400, 231, 41))
         self.comboBoxChgmt.setObjectName("choixPokChgmt")
-        # self.comboBoxChgmt.addItem("pok1")
-        # self.comboBoxChgmt.addItem("pok2")
-        # self.comboBoxChgmt.addItem("pok3")
         for p in C1.joueur.list_pok:
             self.comboBoxChgmt.addItem(p.name)
         # self.comboBoxChgmt.setText("Choix du pokemon")
@@ -126,6 +130,7 @@ class Ui_Form(object):
         self.pushButton_5.show()
         # self.close()
     
+    
     def fctAttSpe(self):
         C1.choixSpe = 1
         C1.attaque()
@@ -137,6 +142,10 @@ class Ui_Form(object):
         C1.attPokSauvage()
         txt = C1.afficheInfosCombat()
         self.label_2.setText(txt)
+        
+        self.gestionMortPok()
+            
+    
     
     def fctAttSpl(self):
         C1.choixSpe = 2 
@@ -151,14 +160,31 @@ class Ui_Form(object):
         txt = C1.afficheInfosCombat()
         self.label_2.setText(txt)
         
+        self.gestionMortPok()
+    
+    
+    def gestionMortPok(self):
+        C1.testMortPokemonJoueur()
+        if C1.is_att_possible == False:  # Si le pokemon attaquant est mort
+            self.pushButton_3.hide()
+            C1.joueur.list_pok.remove(C1.pok_att)
+            print("Pok encore en possession du joueur :")
+            for p in C1.joueur.list_pok:
+                print(p.name)
+            self.label_3.show()
+            self.label_3.setText("Votre pokemon est mort !\n\nVous n'avez plus qu'à le changer, ou à fuire...")
+        
+    
     def fctFuite(self):
         C1.fuite()
         if C1.continuer_combat == False:
             print("\nVous fuyez !")
             self.close()
     
+    
     def fctChangement(self):
         self.comboBoxChgmt.show()
+    
     
     def fctChoixPokChgmt(self):
         self.pok_select_nom = self.comboBoxChgmt.currentText()
@@ -172,6 +198,9 @@ class Ui_Form(object):
         self.comboBoxChgmt.hide()
         txt = C1.afficheInfosCombat()
         self.label_2.setText(txt)
+        if C1.pok_att.hp_restant > 0:
+            self.pushButton_3.show()
+            self.label_3.hide()
               
       
       

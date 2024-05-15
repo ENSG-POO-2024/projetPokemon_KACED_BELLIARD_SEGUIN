@@ -38,6 +38,7 @@ class Ui_MainWindow(object):
         self.boutonTest = QtWidgets.QPushButton(self.centralwidget)
         self.boutonTest.setGeometry(QtCore.QRect(90, 70, 141, 61))
         self.boutonTest.setObjectName("boutonTest")
+        
         self.boutonTest.clicked.connect(self.fonctionBoutonTest)
         
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
@@ -92,4 +93,9 @@ if __name__ == "__main__":
         mainWin = XXXXWindow()
         mainWin.show()
         app.exec_()
-    run_app()
+    
+    choix = input("Entrez <oui> si vous voulez ouvrir la fenetre, <non> sinon :")
+    if choix == "oui":
+        run_app()
+    elif choix == "non":
+        print("raté")

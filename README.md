@@ -1,3 +1,6 @@
+!!! Le bon code se situe dans la branche developp_LL. Nous n'avons pas réussi à tout merge correctement avec la branche master
+
+
 # Pokémon: projet informatique
 
 * Marie-Dominique Van Damme: marie-dominique.van-damme@ensg.eu

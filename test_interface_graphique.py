@@ -19,12 +19,12 @@ import deplacement_joueur as dj
 from deplacement_joueur import *
 
 
-pikachu = pk.Pokemon(pk.df_n[24,:], (5,5))
+pikachu = pk.Pokemon(pk.df_n[5,:], (5,5))
 rattata = pk.Pokemon(pk.df_n[18,:], (5,5))
-bulbasaur = pk.Pokemon(pk.df_n[0,:], (5,5))
-liste_pok_j1 = [pikachu, rattata, bulbasaur]
+weedle = pk.Pokemon(pk.df_n[2,:], (5,5))
+liste_pok_j1 = [pikachu, rattata, weedle]
 J1 = dj.Joueur('j1', liste_pok_j1, 45)
-C1 = tcc.Combat(J1, bulbasaur, pikachu)
+C1 = tcc.Combat(J1, weedle, pikachu)
 
 
 class Ui_Form(object):
@@ -126,9 +126,9 @@ class Ui_Form(object):
     def fctActivationAttaque(self):
         txt = C1.afficheInfosCombat()
         self.label_2.setText(txt)
-        self.pushButton_4.show()
+        if C1.is_spe_possible == True:
+            self.pushButton_4.show()
         self.pushButton_5.show()
-        # self.close()
     
     
     def fctAttSpe(self):

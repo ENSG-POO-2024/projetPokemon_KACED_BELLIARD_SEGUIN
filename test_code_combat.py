@@ -225,6 +225,8 @@ class Combat(PointsAttaque):
         self.is_finito = False
         choixPossibles = {0:"fuite", 1:"attaque", 2:"changement"}
         self.choixSpe = 1
+        self.is_spe_possible = True
+        self.cpt_spe = 0
 
     
     def demandeChoixAction(self):
@@ -258,6 +260,11 @@ class Combat(PointsAttaque):
         att = PointsAttaque(self.pok_def, self.pok_att)
         # self.choixSpe = int(input("Entrez 1 si vous souhaitez faire une attaque spéciale, 2 sinon : "))
         att.retraitPtsAttaque(self.choixSpe)
+        self.cpt_spe += 1
+        if self.cpt_spe % 3 == 0:  # Si on est dans le cas où ça fait 3 attaques que les joueur n'a pas fait d'attaque spéciale
+            self.is_spe_possible = True
+        else:
+            self.is_spe_possible = False
     
     
     def attPokSauvage(self):
@@ -356,20 +363,16 @@ class Combat(PointsAttaque):
         
         
     def afficheInfosCombat(self):
-        print("\n*** Infos combat ***")
-        print("Nom pokemon attaquant :", self.pok_att.name)
-        print("HP restants pok attaquant :", self.pok_att.hp_restant)
-        print("Nom pokemon sauvage :", self.pok_def.name)
-        print("HP restants pok sauvage :", self.pok_def.hp_restant)
-        
         att = PointsAttaque(self.pok_def, self.pok_att)
-        coef = att.rechCoef(0)
-        print("Efficacité des attaques spéciales :", coef)
         
         txt = "\n*** Infos combat ***"
-        txt += "\nNom pokemon attaquant : " + self.pok_att.name
+        txt += "\nNom pokemon attaquant :" + self.pok_att.name
         txt += "\nHP restants pok attaquant :" + str(self.pok_att.hp_restant)
         txt += "\nNom pokemon sauvage :" + self.pok_def.name
+        txt += "\nHP restants pok sauvage :" + str(self.pok_def.hp_restant)
+        coef = att.rechCoef(0)
+        txt += "\nEfficacité des attaques spéciales :" + str(coef)
+        
         return txt
         
     
